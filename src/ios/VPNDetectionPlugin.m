@@ -13,15 +13,27 @@
 
 - (void)detectVPN:(CDVInvokedUrlCommand*)command
 {
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[self checkForVPNConnectivity]];
+    
+    NSString * jsonVPNs = [command argumentAtIndex:0];
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:[self checkForVPNConnectivity:jsonVPNs]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (BOOL)checkForVPNConnectivity
+- (BOOL)checkForVPNConnectivity:(NSString*) jsonVPNs
 {
+    if (jsonVPNs == nil || [jsonVPNs isEqualToString:@""]) {
+        jsonVPNs = @"[\"tap\",\"tun\",\"ppp\",\"ipsec\",\"utun\"]";
+    }
+    
+    jsonVPNs = [jsonVPNs stringByReplacingOccurrencesOfString:@"[" withString:@""];
+    jsonVPNs = [jsonVPNs stringByReplacingOccurrencesOfString:@"]" withString:@""];
+    jsonVPNs = [jsonVPNs stringByReplacingOccurrencesOfString:@"\"" withString:@""];
+
+    NSArray * vpns = [jsonVPNs componentsSeparatedByString:@","];
+    
     NSDictionary *dict = CFBridgingRelease(CFNetworkCopySystemProxySettings());
     NSDictionary *keys = dict[@"__SCOPED__"];
-    NSArray *vpns = @[@"tap",@"tun",@"ppp",@"ipsec",@"utun"];
+    //NSArray *vpns = @[@"tap",@"tun",@"ppp",@"ipsec",@"utun"];
     
     for (NSString* key in keys.allKeys){
       for(NSString* vpn in vpns){
@@ -29,9 +41,6 @@
           return true;
         }
       }
-       /* if ([key isEqualToString: @"tap"] || [key isEqualToString:@"tun"] || [key isEqualToString: @"ppp"] || [key isEqualToString: @"ipsec"] || [key isEqualToString: @"ipsec0"] || [key isEqualToString: @"utun1"] || [key isEqualToString: @"utun2"] || [key isEqualToString:  @"utun3"]) {
-            return true;
-          }*/
     }
     return false;
 }
