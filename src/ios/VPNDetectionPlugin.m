@@ -36,8 +36,10 @@
     //NSArray *vpns = @[@"tap",@"tun",@"ppp",@"ipsec",@"utun"];
     
     for (NSString* key in keys.allKeys){
-      for(NSString* vpn in vpns){
-        if([key containsString:vpn]){
+      if ([key rangeOfString:@"tap"].location != NSNotFound ||
+            [key rangeOfString:@"tun"].location != NSNotFound ||
+            [key rangeOfString:@"ipsec"].location != NSNotFound ||
+            [key rangeOfString:@"ppp"].location != NSNotFound){{
           return true;
         }
       }
